@@ -1,0 +1,215 @@
+from xarm.wrapper import XArmAPI
+import math
+import time
+
+def move_joint_flexion(arm, x_i, z_i, y_i, theta_i, theta_f, roll, yaw, steps, speed):
+    # Calculate the change in angle per step 
+    delta_theta = theta_f/ steps
+
+    # Store the positions to reverse the movement later
+    positions = []
+    positions.append((x_i, z_i,theta_i))
+
+    for i in range(1,steps + 1):
+        # Calculate the current flexion angle (starting from theta_i)
+        theta = i * delta_theta
+
+        # Calculate offsets based on the flexion angle (93 mm below TCP)
+        x_offset = 93 * math.sin(math.radians(theta))
+        z_offset = 93 * (math.cos(math.radians(theta)) - 1)
+
+        # Calculate the new position and angle
+        x_s= x_i + x_offset
+        z_s= z_i + z_offset
+        theta_s= theta + theta_i
+        
+        # Store the position and offsets for later reversal
+        positions.append((x_s, z_s, theta_s))
+
+        # Move the arm to the new position (adding the offsets to the current position)
+        print(f"Moving to step {i}: x={x_s}, y={y_i}, z={z_s}, pitch={theta_s}")
+        arm.set_position(x=x_s, y=y_i, z=z_s, pitch = theta_s, roll = roll, yaw=yaw, speed=speed, wait=True)
+
+        # Adding a small delay to ensure smooth movement
+        time.sleep(0.2)
+
+    # After the flexion/extension is complete, reverse the movement
+    print("Reversing the movement to return to the starting position.")
+
+    # Reverse the stored movements (negate offsets and angle change)
+    for i in range(len(positions) - 1, -1, -1):  # Go in reverse order
+        x_s, z_s, theta_s = positions[i]
+        
+        # Reverse the offsets and move the robot back
+        print(f"Reversing to step {i}: x={x_s}, y={y_i}, z={z_s}, pitch={theta_s}")
+        arm.set_position(x=x_s, y=y_i, z=z_s, pitch=theta_s,roll=roll, yaw=yaw, speed=speed, wait=True)
+        
+        # Adding a small delay to ensure smooth movement
+        time.sleep(0.2)
+
+def move_joint_extension(arm, x_i, z_i, y_i, theta_i, theta_f, roll, yaw, steps, speed):
+    # Calculate the change in angle per step 
+    delta_theta = theta_f/ steps
+
+    # Store the positions to reverse the movement later
+    positions = []
+    positions.append((x_i, z_i,theta_i))
+
+    for i in range(1,steps + 1):
+        # Calculate the current extension angle (starting from theta_i)
+        theta = i * delta_theta
+
+        # Calculate offsets based on the flexion angle (93 mm below TCP) with negative for extension
+        x_offset = -93 * math.sin(math.radians(theta))
+        z_offset = 93 * (math.cos(math.radians(theta)) - 1)
+
+       # Calculate the new position and angle
+        x_s= x_i + x_offset
+        z_s= z_i + z_offset
+        theta_s= -1*theta + theta_i
+        
+        # Store the position and offsets for later reversal
+        positions.append((x_s, z_s, theta_s))
+
+        # Move the arm to the new position (adding the offsets to the current position)
+        print(f"Moving to step {i}: x={x_s}, y={y_i}, z={z_s}, pitch={theta_s}")
+        arm.set_position(x=x_s, y=y_i, z=z_s, pitch = theta_s, roll=roll, yaw=yaw, speed=speed, wait=True)
+
+        # Adding a small delay to ensure smooth movement
+        time.sleep(0.2)
+
+    # After the flexion/extension is complete, reverse the movement
+    print("Reversing the movement to return to the starting position.")
+
+    # Reverse the stored movements (negate offsets and angle change)
+    for i in range(len(positions) - 1, -1, -1):  # Go in reverse order
+        x_s, z_s, theta_s = positions[i]
+        
+        # Reverse the offsets and move the robot back
+        print(f"Reversing to step {i}: x={x_s}, y={y_i}, z={z_s}, pitch={theta_s}")
+        arm.set_position(x=x_s, y=y_i, z=z_s, pitch=theta_s, roll=roll, yaw=yaw, speed=speed, wait=True)
+        
+        # Adding a small delay to ensure smooth movement
+        time.sleep(0.2)
+
+
+def move_joint_lateral_left(arm, x_i, z_i, y_i, theta_i, theta_f, pitch, yaw, steps, speed):
+    # Calculate the change in angle per step 
+    delta_theta = theta_f/ steps
+
+    # Store the positions to reverse the movement later
+    positions = []
+    positions.append((y_i, z_i,theta_i))
+
+    for i in range(1,steps + 1):
+        # Calculate the current flexion angle (starting from theta_i)
+        theta = i * delta_theta
+
+        # Calculate offsets based on the bending angle (93 mm below TCP)
+        y_offset = -93 * math.sin(math.radians(theta))
+        z_offset = 93 * (math.cos(math.radians(theta)) - 1)
+
+        y_s= y_i + y_offset
+        z_s= z_i + z_offset
+        theta_s= theta + theta_i
+        
+        # Store the position and offsets for later reversal
+        positions.append((y_s, z_s, theta_s))
+
+        # Move the arm to the new position (adding the offsets to the current position and adjusting roll for bending)
+        print(f"Moving to step {i}: x={x_i}, y={y_s}, z={z_s}, Roll={theta_s}")
+        arm.set_position(x=x_i, y=y_s, z=z_s, pitch = pitch, roll=theta_s, yaw=yaw, speed=speed, wait=True)
+
+        # Adding a small delay to ensure smooth movement
+        time.sleep(0.2)
+
+    # After the flexion/extension is complete, reverse the movement
+    print("Reversing the movement to return to the starting position.")
+
+    # Reverse the stored movements (negate offsets and angle change)
+    for i in range(len(positions) - 1, -1, -1):  # Go in reverse order
+        y_s, z_s, theta_s = positions[i]
+        
+        # Reverse the offsets and move the robot back
+        print(f"Reversing to step {i}: x={x_i}, y={y_s}, z={z_s}, Roll={theta_s}")
+        arm.set_position(x=x_i, y=y_s, z=z_s, pitch=pitch, roll=theta_s, yaw=yaw, speed=speed, wait=True)
+        
+        # Adding a small delay to ensure smooth movement
+        time.sleep(0.2)
+
+def move_joint_lateral_right(arm, x_i, z_i, y_i, theta_i, theta_f, pitch, yaw, steps, speed):
+    # Calculate the change in angle per step (from theta_i to theta_f)
+    delta_theta = theta_f/ steps
+
+    # Store the positions to reverse the movement later
+    positions = []
+    positions.append((y_i, z_i,theta_i))
+
+    for i in range(1,steps + 1):
+        # Calculate the current flexion angle (starting from theta_i)
+        theta = i * delta_theta
+
+        # Calculate offsets based on the bending angle (93 mm below TCP)
+        y_offset = 93 * math.sin(math.radians(theta))
+        z_offset = 93 * (math.cos(math.radians(theta)) - 1)
+
+        # Calculate the new position and angle
+        y_s= y_i + y_offset
+        z_s= z_i + z_offset
+        theta_s= -1 * theta + theta_i
+        
+        # Store the position and offsets for later reversal
+        positions.append((y_s, z_s, theta_s))
+
+        # Move the arm to the new position (adding the offsets to the current position)
+        print(f"Moving to step {i}: x={x_i}, y={y_s}, z={z_s}, Roll={theta_s}")
+        arm.set_position(x=x_i, y=y_s, z=z_s, pitch = pitch, roll=theta_s, yaw=yaw, speed=speed, wait=True)
+
+        # Adding a small delay to ensure smooth movement
+        time.sleep(0.2)
+
+    # After the flexion/extension is complete, reverse the movement
+    print("Reversing the movement to return to the starting position.")
+
+    # Reverse the stored movements (negate offsets and angle change)
+    for i in range(len(positions) - 1, -1, -1):  # Go in reverse order
+        y_s, z_s, theta_s = positions[i]
+        
+        # Reverse the offsets and move the robot back
+        print(f"Reversing to step {i}: x={x_i}, y={y_s}, z={z_s}, Roll={theta_s}")
+        arm.set_position(x=x_i, y=y_s, z=z_s, pitch=pitch, roll=theta_s, yaw=yaw, speed=speed, wait=True)
+        
+        # Adding a small delay to ensure smooth movement
+        time.sleep(0.2)
+
+
+# Connect to the arm
+arm = XArmAPI('192.168.1.197')
+arm.motion_enable(enable=True)
+arm.set_mode(0)
+arm.set_state(state=0)
+
+# Put Arm into Initial Position for Testing
+arm.set_servo_angle(angle=[2.5, -21.7, -22.5, 0, 0, 0], is_radian=False, wait=True)
+
+# Get the current position of the robot (assuming pos is a tuple: (code, [x, y, z, rx, ry, rz]))
+pos = arm.get_position(is_radian=False)
+
+# Extract position values from the tuple
+x_i, y_i, z_i, roll, pitch, yaw = pos[1]  # pos[1] gives the list of coordinates and angles
+
+# Run Flexion and Extension Code
+move_joint_flexion(arm, x_i=x_i, z_i=z_i, y_i=y_i, theta_i=pitch, theta_f=5, roll=roll, yaw=yaw,  steps=3, speed=20)
+move_joint_extension(arm, x_i=x_i, z_i=z_i, y_i=y_i, theta_i=pitch, theta_f=5, roll=roll, yaw=yaw, steps=3, speed=20)
+
+# Initialize Robot Position for Lateral Bending
+arm.set_servo_angle(angle=[2.5, -21.7, -22.5, -90, 0, 90], is_radian=False, wait=True)
+
+# Run Lateral Bending Code
+move_joint_lateral_right(arm, x_i=x_i, z_i=z_i, y_i=y_i, theta_i=roll, theta_f=7, pitch=pitch, yaw=yaw, steps=3, speed=20)
+move_joint_lateral_left(arm, x_i=x_i, z_i=z_i, y_i=y_i, theta_i=roll, theta_f=7, pitch=pitch, yaw=yaw, steps=3, speed=20)
+
+# Run Axial Rotation Code
+__,current_angle = arm.get_servo_angle(servo_id=6, is_radian=False)
+arm.set_servo_angle(servo_id=6, angle = current_angle + 5, is_radian=False, wait=True)
+arm.set_servo_angle(servo_id=6,angle=current_angle-5, is_radian=False, wait=True)
