@@ -26,7 +26,7 @@ arm.set_state(state=0)
 angle_fe = [0.7, -37.5, -37.4, 3.3, -1.1, -3.3]
 
 # For Lateral Testing Use Position Below
-angle_fe = [0.7, -37.5, -37.4, 3.3, -1.1, -93.3]
+angle_lb = [0.7, -37.5, -37.4, 3.3, -1.1, -93.3]
 
 arm.set_servo_angle(angle=angle_fe, is_radian=False, wait=False, speed=10)
 
